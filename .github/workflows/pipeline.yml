@@ -1,0 +1,61 @@
+# name: Docker Build and Push
+
+# on:
+#   push:
+#     branches:
+#       - main  # Adjust the branch name as needed
+
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest  # This ensures the job runs on the self-hosted runner
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Set up AWS CLI
+#         uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: us-east-2  # Specify your AWS region
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         run: |
+#           aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REGISTRY }}/poc-docker-proj-nginx
+#       - name: Build and tag Docker image
+#         run: docker build -t my-docker-image .
+#       - name: Calculate IMAGE_TAG
+#         run: |
+#           COMMIT_ID=$(echo ${GITHUB_SHA:0:7})
+#           BUILD_ID=$GITHUB_RUN_NUMBER
+#           IMAGE_TAG=$COMMIT_ID-$BUILD_ID
+#           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+#       - name: Tag Docker image with ECR repository URL
+#         run: |
+#           docker tag my-docker-image ${{ secrets.AWS_ECR_REGISTRY }}/poc-docker-proj-nginx:latest
+#           docker tag my-docker-image ${{ secrets.AWS_ECR_REGISTRY }}/poc-docker-proj-nginx:${{ env.IMAGE_TAG }}
+#       - name: Push Docker image to ECR
+#         run: |
+#           docker push ${{ secrets.AWS_ECR_REGISTRY }}/poc-docker-proj-nginx:latest
+#           docker push ${{ secrets.AWS_ECR_REGISTRY }}/poc-docker-proj-nginx:${{ env.IMAGE_TAG }}
+
+#       - name: Deploy to Remote Server using Docker Compose
+#         env:
+#           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+#           SSH_USER: ubuntu
+#           REMOTE_HOST: 3.133.151.87
+#         run: |
+#           mkdir -p ~/.ssh
+#           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/ec2-private-key.pem
+#           chmod 600 ~/.ssh/ec2-private-key.pem 
+#           # Copy your Docker Compose file to the remote server
+#           scp -i ~/.ssh/ec2-private-key.pem -o StrictHostKeyChecking=no docker-compose.yml $SSH_USER@$REMOTE_HOST:~/docker-compose.yml
+#           ssh -i ~/.ssh/ec2-private-key.pem -o StrictHostKeyChecking=no $SSH_USER@$REMOTE_HOST  'aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 893117704213.dkr.ecr.us-east-2.amazonaws.com' 
+#           # SSH into the remote server and run Docker Compose commands
+#           ssh -i ~/.ssh/ec2-private-key.pem -o StrictHostKeyChecking=no $SSH_USER@$REMOTE_HOST 'cd ~ && docker compose down -v && docker compose up -d'
+
+
+
+
+    

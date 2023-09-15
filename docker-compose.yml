@@ -1,0 +1,7 @@
+version: '3'
+services:
+  nginx:
+    image: 893117704213.dkr.ecr.us-east-2.amazonaws.com/poc-docker-proj-nginx:latest
+    ports:
+      - "80:80"
+    restart: always
